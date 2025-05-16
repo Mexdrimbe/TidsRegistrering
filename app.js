@@ -1,4 +1,4 @@
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwzQSBv7WJh_fw8Z1cUODtIu3bn-f2tJiKtwKGz_m7shfaPi2QMu6XFMEPCYWj-frrd/exec';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzzYXkdg3QOwktzwKxTJkAih0ZQleoRtE8LrU0DPZTobDz88VaM50qsQ30mwUcfwgVd/exec';
 
 let userId = localStorage.getItem('userId');
 if (!userId) {
