@@ -9,8 +9,6 @@
 <body>
   <div class="card" id="main-card">
     <h1>Tidsrapportering</h1>
-
-    <!-- 1. Projekt-skapande & lista -->
     <section id="projects-section">
       <div id="proj-form">
         <input type="text" id="new-proj-name" placeholder="Nytt projektnamn…">
@@ -18,29 +16,20 @@
       </div>
       <ul id="project-list"></ul>
     </section>
-
-    <!-- 2. Tidsvy per projekt -->
     <section id="timelog-section" class="hidden">
       <button id="btn-back">← Tillbaka till projekt</button>
       <h2 id="proj-title"></h2>
-
-      <!-- Timer-kontroller -->
       <div id="timer-controls">
         <button id="btn-timer">Starta timer</button>
       </div>
-
-      <!-- Kalender-navigator -->
       <div id="month-nav">
         <button id="prev-month">⟨</button>
         <span id="current-month"></span>
         <button id="next-month">⟩</button>
       </div>
-
-      <!-- Dagssammanfattning -->
       <div id="calendar-grid"></div>
     </section>
   </div>
-
   <script defer src="src/app.js"></script>
 </body>
 </html>
