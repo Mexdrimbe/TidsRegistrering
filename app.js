@@ -1,4 +1,4 @@
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxHj7Y-Gfjx5kUULF2ZCi02mmcPlpWiyBNtVp1JRrGM9ZdxOOfyIsPpHgaxn_8BYVP-/exec';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzed52AhJ3P-pxFpw8eWUPJuWzq_Uf8jbGJZ29YZnuV67PEwTC1A_f_TcDPG_s0zx-5/exec';
 
 const secProj    = document.getElementById('projects-section');
 const secLog     = document.getElementById('timelog-section');
