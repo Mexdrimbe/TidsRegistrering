@@ -1,7 +1,3 @@
-# Tidsrapportering – byggd för min mamma ❤️
-
-Detta är ett enkelt tidrapporteringssystem byggt med HTML, CSS och JavaScript – kopplat till Google Sheets för lagring. Projektet är tänkt att vara lätt att använda, mobilvänligt och helt gratis att köra via GitHub Pages.
-
 ## 🧩 Funktioner
 
 - Skapa projekt
@@ -33,6 +29,4 @@ MIT – se LICENSE-filen.
 ## 💬 Om projektet
 
 Detta projekt byggdes under våren 2025 som en personlig gåva till min mamma.  
-Det var inte det roligaste jag gjort – men ibland bygger man för andra, inte för sig själv.
 
-> – Elton Edvall Brink
