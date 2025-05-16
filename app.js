@@ -28,24 +28,20 @@ let selectedProject = null;
 let viewDate = new Date();
 let timer     = {};
 let timerInterval;
+
 loadAll();
 btnAdd.onclick    = addProject;
 btnBack.onclick   = () => { secLog.classList.add('hidden'); secProj.classList.remove('hidden'); };
-btnTimer.onclick  = () => { 
-  if (timer.projectId === selectedProject.id) stopTimer();
-  else startTimer();
-};
+btnTimer.onclick  = () => { timer.projectId === selectedProject.id ? stopTimer() : startTimer(); };
 prevM.onclick     = () => changeMonth(-1);
 nextM.onclick     = () => changeMonth(1);
 
 async function loadAll() {
-  loadLocalProjects();
-  await loadEntries();
+  projects = JSON.parse(localStorage.getItem('projects')||'[]');
+  entries = await get('getEntries');
   renderProjectList();
 }
-function loadLocalProjects() {
-  projects = JSON.parse(localStorage.getItem('projects')||'[]');
-}
+
 async function addProject() {
   const name = inProj.value.trim();
   if (!name) return alert('Ange projektnamn');
@@ -54,11 +50,12 @@ async function addProject() {
   localStorage.setItem('projects', JSON.stringify(projects));
   renderProjectList();
   inProj.value = '';
-  await post({ action:'createProject', name, localId: id });
+  await fetch(ENDPOINT, {
+    method: 'POST',
+    body: new URLSearchParams({ action:'createProject', name, localId: id })
+  });
 }
-async function loadEntries() {
-  entries = await get('getEntries');
-}
+
 function renderProjectList() {
   listProj.innerHTML = '';
   projects.forEach(p => {
@@ -69,6 +66,7 @@ function renderProjectList() {
     listProj.appendChild(li);
   });
 }
+
 function openProject(p) {
   selectedProject = p;
   titleH2.textContent = p.name;
@@ -78,10 +76,12 @@ function openProject(p) {
   renderCalendar();
   checkRunningTimer();
 }
+
 function changeMonth(dir) {
   viewDate.setMonth(viewDate.getMonth() + dir);
   renderCalendar();
 }
+
 function renderCalendar() {
   curM.textContent = viewDate.toLocaleDateString('sv-SE', { year:'numeric', month:'long' });
   grid.innerHTML = '';
@@ -95,23 +95,22 @@ function renderCalendar() {
     cell.className = 'calendar-cell';
     const dateStr = new Date(y,m,d).toISOString().slice(0,10);
     if (dateStr === new Date().toISOString().slice(0,10)) cell.classList.add('today');
-
     const total = entries
       .filter(e => e.project == selectedProject.id)
       .filter(e => e.start.slice(0,10) === dateStr)
       .reduce((sum,e) => sum + ((new Date(e.end) - new Date(e.start))/36e5), 0);
-
     cell.innerHTML = `<div>${d}</div><small>${total.toFixed(2)}h</small>`;
     grid.appendChild(cell);
   }
 }
+
 function checkRunningTimer() {
   const saved = localStorage.getItem(`timer_${selectedProject.id}`);
   if (saved) {
     timer = { projectId: selectedProject.id, startTime: saved };
     btnTimer.textContent = 'Stoppa timer';
     btnTimer.classList.add('running');
-    startDisplay();  // börja uppdatera display
+    startDisplay();
   } else {
     timer = {};
     btnTimer.textContent = 'Starta timer';
@@ -119,6 +118,7 @@ function checkRunningTimer() {
     stopDisplay();
   }
 }
+
 function startTimer() {
   const start = new Date().toISOString();
   timer = { projectId: selectedProject.id, startTime: start };
@@ -127,39 +127,39 @@ function startTimer() {
   btnTimer.classList.add('running');
   startDisplay();
 }
+
 async function stopTimer() {
   const end = new Date().toISOString();
   try {
     await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         action:    'addEntry',
         projectId: timer.projectId,
         start:     timer.startTime,
         end
       })
     });
-  } catch (err) {
-    console.error('Failed to save entry:', err);
-  } finally {
-    localStorage.removeItem(`timer_${selectedProject.id}`);
-    btnTimer.textContent = 'Starta timer';
-    btnTimer.classList.remove('running');
-    stopDisplay();
-    timer = {};
-    entries = await get('getEntries').catch(e => entries);
-    renderCalendar();
-  }
+  } catch {}
+  localStorage.removeItem(`timer_${selectedProject.id}`);
+  btnTimer.textContent = 'Starta timer';
+  btnTimer.classList.remove('running');
+  stopDisplay();
+  timer = {};
+  entries = await get('getEntries');
+  renderCalendar();
 }
+
 function startDisplay() {
   updateDisplay();
   timerInterval = setInterval(updateDisplay, 1000);
 }
+
 function stopDisplay() {
   clearInterval(timerInterval);
-  timerDisplay.textContent = ''; 
+  timerDisplay.textContent = '';
 }
+
 function updateDisplay() {
   if (!timer.startTime) return;
   const diff = Date.now() - new Date(timer.startTime).getTime();
@@ -171,14 +171,8 @@ function updateDisplay() {
     `${mins.toString().padStart(2,'0')}:` +
     `${secs.toString().padStart(2,'0')}`;
 }
+
 async function get(action) {
   const res = await fetch(`${ENDPOINT}?action=${action}`);
   return await res.json();
-}
-async function post(body) {
-  await fetch(ENDPOINT, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(body)
-  });
 }
