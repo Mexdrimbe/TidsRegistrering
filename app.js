@@ -13,6 +13,7 @@ const prevM      = document.getElementById('prev-month');
 const nextM      = document.getElementById('next-month');
 const curM       = document.getElementById('current-month');
 const grid       = document.getElementById('calendar-grid');
+const daySummary = document.getElementById('day-summary');
 
 let timerDisplay = document.getElementById('timer-display');
 if (!timerDisplay) {
@@ -22,6 +23,7 @@ if (!timerDisplay) {
   timerDisplay.style.marginBottom = '8px';
   timerCtr.insertBefore(timerDisplay, btnTimer);
 }
+
 let projects = [];
 let entries  = [];
 let selectedProject = null;
@@ -37,7 +39,8 @@ prevM.onclick     = () => changeMonth(-1);
 nextM.onclick     = () => changeMonth(1);
 
 async function loadAll() {
-  projects = JSON.parse(localStorage.getItem('projects')||'[]');
+  projects = await get('getProjects');
+  localStorage.setItem('projects', JSON.stringify(projects));
   entries = await get('getEntries');
   renderProjectList();
 }
@@ -45,15 +48,10 @@ async function loadAll() {
 async function addProject() {
   const name = inProj.value.trim();
   if (!name) return alert('Ange projektnamn');
-  const id = Date.now().toString();
-  projects.push({ id, name });
-  localStorage.setItem('projects', JSON.stringify(projects));
-  renderProjectList();
+  const params = new URLSearchParams({ action:'createProject', name });
+  await fetch(ENDPOINT, { method:'POST', body: params });
   inProj.value = '';
-  await fetch(ENDPOINT, {
-    method: 'POST',
-    body: new URLSearchParams({ action:'createProject', name, localId: id })
-  });
+  await loadAll();
 }
 
 function renderProjectList() {
@@ -100,8 +98,10 @@ function renderCalendar() {
       .filter(e => e.start.slice(0,10) === dateStr)
       .reduce((sum,e) => sum + ((new Date(e.end) - new Date(e.start))/36e5), 0);
     cell.innerHTML = `<div>${d}</div><small>${total.toFixed(2)}h</small>`;
+    cell.onclick = () => daySummary.textContent = `Dag: ${d} ${total.toFixed(2)}h`;
     grid.appendChild(cell);
   }
+  daySummary.textContent = '';
 }
 
 function checkRunningTimer() {
@@ -130,17 +130,13 @@ function startTimer() {
 
 async function stopTimer() {
   const end = new Date().toISOString();
-  try {
-    await fetch(ENDPOINT, {
-      method: 'POST',
-      body: new URLSearchParams({
-        action:    'addEntry',
-        projectId: timer.projectId,
-        start:     timer.startTime,
-        end
-      })
-    });
-  } catch {}
+  const params = new URLSearchParams({
+    action:    'addEntry',
+    projectId: timer.projectId,
+    start:     timer.startTime,
+    end
+  });
+  await fetch(ENDPOINT, { method:'POST', body: params });
   localStorage.removeItem(`timer_${selectedProject.id}`);
   btnTimer.textContent = 'Starta timer';
   btnTimer.classList.remove('running');
