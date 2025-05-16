@@ -1,7 +1,5 @@
-// Sätt din egen Web App URL här:
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxHj7Y-Gfjx5kUULF2ZCi02mmcPlpWiyBNtVp1JRrGM9ZdxOOfyIsPpHgaxn_8BYVP-/exec';
 
-// UI-referenser
 const secProj    = document.getElementById('projects-section');
 const secLog     = document.getElementById('timelog-section');
 const listProj   = document.getElementById('project-list');
@@ -16,7 +14,6 @@ const nextM      = document.getElementById('next-month');
 const curM       = document.getElementById('current-month');
 const grid       = document.getElementById('calendar-grid');
 
-// Timer-display
 let timerDisplay = document.getElementById('timer-display');
 if (!timerDisplay) {
   timerDisplay = document.createElement('div');
@@ -25,16 +22,12 @@ if (!timerDisplay) {
   timerDisplay.style.marginBottom = '8px';
   timerCtr.insertBefore(timerDisplay, btnTimer);
 }
-
-// State
 let projects = [];
 let entries  = [];
 let selectedProject = null;
 let viewDate = new Date();
 let timer     = {};
 let timerInterval;
-
-// Init
 loadAll();
 btnAdd.onclick    = addProject;
 btnBack.onclick   = () => { secLog.classList.add('hidden'); secProj.classList.remove('hidden'); };
@@ -45,17 +38,15 @@ btnTimer.onclick  = () => {
 prevM.onclick     = () => changeMonth(-1);
 nextM.onclick     = () => changeMonth(1);
 
-// --- Funktioner ---
+// --- functions ---
 async function loadAll() {
   loadLocalProjects();
   await loadEntries();
   renderProjectList();
 }
-
 function loadLocalProjects() {
   projects = JSON.parse(localStorage.getItem('projects')||'[]');
 }
-
 async function addProject() {
   const name = inProj.value.trim();
   if (!name) return alert('Ange projektnamn');
@@ -66,11 +57,9 @@ async function addProject() {
   inProj.value = '';
   await post({ action:'createProject', name, localId: id });
 }
-
 async function loadEntries() {
   entries = await get('getEntries');
 }
-
 function renderProjectList() {
   listProj.innerHTML = '';
   projects.forEach(p => {
@@ -81,7 +70,6 @@ function renderProjectList() {
     listProj.appendChild(li);
   });
 }
-
 function openProject(p) {
   selectedProject = p;
   titleH2.textContent = p.name;
@@ -91,12 +79,10 @@ function openProject(p) {
   renderCalendar();
   checkRunningTimer();
 }
-
 function changeMonth(dir) {
   viewDate.setMonth(viewDate.getMonth() + dir);
   renderCalendar();
 }
-
 function renderCalendar() {
   curM.textContent = viewDate.toLocaleDateString('sv-SE', { year:'numeric', month:'long' });
   grid.innerHTML = '';
@@ -110,25 +96,23 @@ function renderCalendar() {
     cell.className = 'calendar-cell';
     const dateStr = new Date(y,m,d).toISOString().slice(0,10);
     if (dateStr === new Date().toISOString().slice(0,10)) cell.classList.add('today');
-
     const total = entries
       .filter(e => e.project == selectedProject.id)
       .filter(e => e.start.slice(0,10) === dateStr)
       .reduce((sum,e) => sum + ((new Date(e.end) - new Date(e.start))/36e5), 0);
-
     cell.innerHTML = `<div>${d}</div><small>${total.toFixed(2)}h</small>`;
     grid.appendChild(cell);
   }
 }
 
-// --- Timer-logik ---
+// --- Timer logic ---
 function checkRunningTimer() {
   const saved = localStorage.getItem(`timer_${selectedProject.id}`);
   if (saved) {
     timer = { projectId: selectedProject.id, startTime: saved };
     btnTimer.textContent = 'Stoppa timer';
     btnTimer.classList.add('running');
-    startDisplay();  // börja uppdatera display
+    startDisplay();  // update display
   } else {
     timer = {};
     btnTimer.textContent = 'Starta timer';
@@ -145,7 +129,6 @@ function startTimer() {
   btnTimer.classList.add('running');
   startDisplay();
 }
-
 async function stopTimer() {
   const end = new Date().toISOString();
   try {
@@ -171,20 +154,16 @@ async function stopTimer() {
     renderCalendar();
   }
 }
-
-// Starta live-display
+// start Live display
 function startDisplay() {
   updateDisplay();
   timerInterval = setInterval(updateDisplay, 1000);
 }
-
-// Stopp live-display
+// stop Live display
 function stopDisplay() {
   clearInterval(timerInterval);
   timerDisplay.textContent = ''; 
 }
-
-// Räkna ut och visa elapsed tid
 function updateDisplay() {
   if (!timer.startTime) return;
   const diff = Date.now() - new Date(timer.startTime).getTime();
@@ -196,8 +175,7 @@ function updateDisplay() {
     `${mins.toString().padStart(2,'0')}:` +
     `${secs.toString().padStart(2,'0')}`;
 }
-
-// --- HTTP-helperar ---
+// --- HTTP- helps---
 async function get(action) {
   const res = await fetch(`${ENDPOINT}?action=${action}`);
   return await res.json();
