@@ -76,6 +76,7 @@ function openProject(p) {
   secProj.classList.add('hidden');
   secLog.classList.remove('hidden');
   viewDate = new Date();
+  entries = await get('getEntries');
   renderCalendar();
   checkRunningTimer();
 }
