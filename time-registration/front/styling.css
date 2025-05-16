@@ -14,7 +14,6 @@ body {
 h1, h2 { text-align: center; margin-bottom: 16px; }
 .hidden { display: none; }
 
-/* Projekt-sektionen */
 #proj-form {
   display: flex; gap: 8px; margin-bottom: 16px;
 }
@@ -37,13 +36,11 @@ h1, h2 { text-align: center; margin-bottom: 16px; }
   background:#34c759; color:#fff; cursor:pointer;
 }
 
-/* Timelog-sektionen */
 #btn-back {
   background: none; border:none; color:#007aff;
   font-size:14px; margin-bottom:12px; cursor:pointer;
 }
 
-/* Timer */
 #timer-controls { text-align:center; margin-bottom:12px; }
 #btn-timer {
   padding: 8px 16px; border:none; border-radius:8px;
@@ -51,7 +48,6 @@ h1, h2 { text-align: center; margin-bottom: 16px; }
 }
 #btn-timer.running { background:#ff3b30; }
 
-/* Månad-navigator */
 #month-nav {
   display:flex; justify-content:center; align-items:center;
   gap:16px; margin-bottom:12px;
@@ -62,7 +58,6 @@ h1, h2 { text-align: center; margin-bottom: 16px; }
 }
 #current-month { font-weight:600; }
 
-/* Kalender-grid */
 #calendar-grid {
   display:grid; grid-template-columns: repeat(7, 1fr);
   gap:4px;
@@ -75,7 +70,6 @@ h1, h2 { text-align: center; margin-bottom: 16px; }
   background:#007aff; color:#fff;
 }
 
-/* Responsivt */
 @media (max-width: 360px) {
   .card { padding:16px; }
   #proj-form { flex-direction: column; }
