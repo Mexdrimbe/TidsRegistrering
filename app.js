@@ -1,5 +1,11 @@
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwzQSBv7WJh_fw8Z1cUODtIu3bn-f2tJiKtwKGz_m7shfaPi2QMu6XFMEPCYWj-frrd/exec';
 
+let userId = localStorage.getItem('userId');
+if (!userId) {
+  userId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  localStorage.setItem('userId', userId);
+}
+
 const secProj    = document.getElementById('projects-section');
 const secLog     = document.getElementById('timelog-section');
 const listProj   = document.getElementById('project-list');
@@ -40,15 +46,14 @@ nextM.onclick     = () => changeMonth(1);
 
 async function loadAll() {
   projects = await get('getProjects');
-  localStorage.setItem('projects', JSON.stringify(projects));
-  entries = await get('getEntries');
+  entries  = await get('getEntries');
   renderProjectList();
 }
 
 async function addProject() {
   const name = inProj.value.trim();
   if (!name) return alert('Ange projektnamn');
-  const params = new URLSearchParams({ action:'createProject', name });
+  const params = new URLSearchParams({ action:'createProject', name, userId });
   await fetch(ENDPOINT, { method:'POST', body: params });
   inProj.value = '';
   await loadAll();
@@ -134,7 +139,8 @@ async function stopTimer() {
     action:    'addEntry',
     projectId: timer.projectId,
     start:     timer.startTime,
-    end
+    end,
+    userId
   });
   await fetch(ENDPOINT, { method:'POST', body: params });
   localStorage.removeItem(`timer_${selectedProject.id}`);
@@ -169,6 +175,6 @@ function updateDisplay() {
 }
 
 async function get(action) {
-  const res = await fetch(`${ENDPOINT}?action=${action}`);
+  const res = await fetch(`${ENDPOINT}?action=${action}&userId=${userId}`);
   return await res.json();
 }
