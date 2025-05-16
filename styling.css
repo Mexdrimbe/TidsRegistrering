@@ -68,3 +68,8 @@ h1, h2 { text-align: center; margin-bottom: 16px; }
   .card { padding:16px; }
   #proj-form { flex-direction: column; }
 }
+.day-summary {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 1rem;
+}
