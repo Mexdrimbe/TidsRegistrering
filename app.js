@@ -6,20 +6,6 @@ if (!userId) {
   localStorage.setItem('userId', userId);
 }
 
-const spinner = document.createElement('div');
-spinner.style.position = 'fixed';
-spinner.style.top = '50%';
-spinner.style.left = '50%';
-spinner.style.width = '40px';
-spinner.style.height = '40px';
-spinner.style.margin = '-20px 0 0 -20px';
-spinner.style.border = '4px solid rgba(0,0,0,0.1)';
-spinner.style.borderTopColor = '#007aff';
-spinner.style.borderRadius = '50%';
-spinner.style.animation = 'spin 1s linear infinite';
-spinner.style.display = 'none';
-document.body.appendChild(spinner);
-
 const secProj    = document.getElementById('projects-section');
 const secLog     = document.getElementById('timelog-section');
 const listProj   = document.getElementById('project-list');
@@ -59,17 +45,16 @@ prevM.onclick     = () => changeMonth(-1);
 nextM.onclick     = () => changeMonth(1);
 
 async function loadAll() {
-  spinner.style.display = 'block';
   projects = await get('getProjects');
   entries  = await get('getEntries');
   renderProjectList();
-  spinner.style.display = 'none';
 }
 
 async function addProject() {
   const name = inProj.value.trim();
-  if (!name) return;
-  await fetch(ENDPOINT, { method:'POST', body: new URLSearchParams({ action:'createProject', name, userId }) });
+  if (!name) return alert('Ange projektnamn');
+  const params = new URLSearchParams({ action:'createProject', name, userId });
+  await fetch(ENDPOINT, { method:'POST', body: params });
   inProj.value = '';
   await loadAll();
 }
@@ -85,15 +70,13 @@ function renderProjectList() {
   });
 }
 
-async function openProject(p) {
+function openProject(p) {
   selectedProject = p;
   titleH2.textContent = p.name;
   secProj.classList.add('hidden');
   secLog.classList.remove('hidden');
   viewDate = new Date();
-  spinner.style.display = 'block';
   entries = await get('getEntries');
-  spinner.style.display = 'none';
   renderCalendar();
   checkRunningTimer();
 }
@@ -109,22 +92,19 @@ function renderCalendar() {
   const y = viewDate.getFullYear(), m = viewDate.getMonth();
   const first = new Date(y,m,1).getDay();
   const days  = new Date(y,m+1,0).getDate();
+
   for (let i=1; i<first; i++) grid.appendChild(document.createElement('div'));
   for (let d=1; d<=days; d++) {
     const cell = document.createElement('div');
     cell.className = 'calendar-cell';
     const dateStr = new Date(y,m,d).toISOString().slice(0,10);
     if (dateStr === new Date().toISOString().slice(0,10)) cell.classList.add('today');
-    const dayEntries = entries
+    const total = entries
       .filter(e => e.project == selectedProject.id)
-      .filter(e => e.start.slice(0,10) === dateStr);
-    const totalMs = dayEntries.reduce((sum,e) => sum + (new Date(e.end) - new Date(e.start)), 0);
-    const hrs  = Math.floor(totalMs/3600000);
-    const mins = Math.floor((totalMs%3600000)/60000);
-    const secs = Math.floor((totalMs%60000)/1000);
-    const totalH = (hrs + mins/60 + secs/3600).toFixed(2);
-    cell.innerHTML = `<div>${d}</div><small>${totalH}h</small>`;
-    cell.onclick = () => daySummary.textContent = `Dag: ${d} ${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+      .filter(e => e.start.slice(0,10) === dateStr)
+      .reduce((sum,e) => sum + ((new Date(e.end) - new Date(e.start))/36e5), 0);
+    cell.innerHTML = `<div>${d}</div><small>${total.toFixed(2)}h</small>`;
+    cell.onclick = () => daySummary.textContent = `Dag: ${d} ${total.toFixed(2)}h`;
     grid.appendChild(cell);
   }
   daySummary.textContent = '';
@@ -156,13 +136,14 @@ function startTimer() {
 
 async function stopTimer() {
   const end = new Date().toISOString();
-  await fetch(ENDPOINT, { method:'POST', body: new URLSearchParams({
+  const params = new URLSearchParams({
     action:    'addEntry',
     projectId: timer.projectId,
     start:     timer.startTime,
     end,
     userId
-  }) });
+  });
+  await fetch(ENDPOINT, { method:'POST', body: params });
   localStorage.removeItem(`timer_${selectedProject.id}`);
   btnTimer.textContent = 'Starta timer';
   btnTimer.classList.remove('running');
@@ -185,10 +166,13 @@ function stopDisplay() {
 function updateDisplay() {
   if (!timer.startTime) return;
   const diff = Date.now() - new Date(timer.startTime).getTime();
-  const hrs  = Math.floor(diff/3600000);
-  const mins = Math.floor((diff%3600000)/60000);
-  const secs = Math.floor((diff%60000)/1000);
-  timerDisplay.textContent = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+  const hrs  = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  timerDisplay.textContent =
+    `${hrs.toString().padStart(2,'0')}:` +
+    `${mins.toString().padStart(2,'0')}:` +
+    `${secs.toString().padStart(2,'0')}`;
 }
 
 async function get(action) {
