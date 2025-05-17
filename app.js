@@ -6,6 +6,20 @@ if (!userId) {
   localStorage.setItem('userId', userId);
 }
 
+const spinner = document.createElement('div');
+spinner.style.position = 'fixed';
+spinner.style.top = '50%';
+spinner.style.left = '50%';
+spinner.style.width = '40px';
+spinner.style.height = '40px';
+spinner.style.margin = '-20px 0 0 -20px';
+spinner.style.border = '4px solid rgba(0,0,0,0.1)';
+spinner.style.borderTopColor = '#007aff';
+spinner.style.borderRadius = '50%';
+spinner.style.animation = 'spin 1s linear infinite';
+spinner.style.display = 'none';
+document.body.appendChild(spinner);
+
 const secProj    = document.getElementById('projects-section');
 const secLog     = document.getElementById('timelog-section');
 const listProj   = document.getElementById('project-list');
@@ -45,9 +59,11 @@ prevM.onclick     = () => changeMonth(-1);
 nextM.onclick     = () => changeMonth(1);
 
 async function loadAll() {
+  spinner.style.display = 'block';
   projects = await get('getProjects');
   entries  = await get('getEntries');
   renderProjectList();
+  spinner.style.display = 'none';
 }
 
 async function addProject() {
@@ -75,7 +91,9 @@ async function openProject(p) {
   secProj.classList.add('hidden');
   secLog.classList.remove('hidden');
   viewDate = new Date();
+  spinner.style.display = 'block';
   entries = await get('getEntries');
+  spinner.style.display = 'none';
   renderCalendar();
   checkRunningTimer();
 }
